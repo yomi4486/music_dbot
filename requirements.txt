@@ -1,0 +1,12 @@
+discord==2.3.2
+discord.py==2.3.2
+discord.py[voice]
+spotipy
+asyncio
+mutagen
+requests
+yt-dlp
+google-api-python-client
+ffmpeg-python
+pytube
+bs4

@@ -1,0 +1,13 @@
+version: "3"
+services:
+    BMA-Type-B:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      env_file: 
+      - .env
+      image: alpine3.14
+      dns:
+       - 8.8.8.8
+      volumes:
+       - /music_dbot # 正しいパスに書き換えてください

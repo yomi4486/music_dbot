@@ -1,0 +1,6 @@
+.env
+playlist
+.cache
+*.ini
+*.json
+music

@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+discord = "==2.3.2"
+"discord.py" = {extras = ["voice"], version = "*"}
+spotipy = "*"
+asyncio = "*"
+mutagen = "*"
+requests = "*"
+yt-dlp = "*"
+google-api-python-client = "*"
+ffmpeg-python = "*"
+pytube = "*"
+bs4 = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
