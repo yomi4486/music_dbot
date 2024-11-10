@@ -29,13 +29,25 @@ audio_name = 'music_name'
 TOKEN = os.environ.get("BOT_TOKEN")
 APPLICATION_ID = os.environ.get("APPLICATION_ID")
 
+ytdlp_options = {
+    'format': 'bestaudio',
+    'noplaylist': True,
+    'quiet': True,
+    'no_warnings':True,
+    # 'extractaudio': True,
+    'audioformat': 'wav'
+}
 
 client = discord.Client(intents = discord.Intents.all())
 intents = discord.Intents.default()
 intents.message_content = True
 tree = app_commands.CommandTree(client)
 
-
+def __get_audio_url__(url):
+    with YoutubeDL(ytdlp_options) as ydl:
+        info = ydl.extract_info(url, download=False)
+        audio_url = info['url']
+        return audio_url
 
 def YouTube_Search(Search_query:str,mode:int):
     """
@@ -59,7 +71,7 @@ def YouTube_Search(Search_query:str,mode:int):
             snippet = response["snippet"]
             youtube_title = snippet["title"]
             youtube_url = f'https://www.youtube.com/watch?v={video_id}'
-            filename = uuid.uuid4()
+            filename = __get_audio_url__(youtube_url)
             # JSONファイルを読み込む
             with open('./cache.json', 'r',encoding="utf-8") as file:
                 data = json.load(file)
@@ -84,7 +96,11 @@ def YouTube_Search(Search_query:str,mode:int):
                 file.write(updated_json)
             return youtube_url
     elif mode == 3:
-
+        with open('./cache.json', 'r',encoding="utf-8") as file:
+            data = json.load(file)
+        data_as_dict = dict(data)
+        if f"{Search_query}" in data_as_dict:
+            return data_as_dict[f"{Search_query}"]["title"]
         youtube_query = youtube.search().list(part='id,snippet',q=Search_query,type='video',maxResults=1,order='relevance',)
         youtube_response = youtube_query.execute()
         response = youtube_response.get('items', [])
@@ -111,17 +127,9 @@ async def play_next(guild,Discordclient):
     if not play_queue.empty():
         global audio_name
         filename, audio_name = play_queue.get()
-        if os.path.exists(f'./music/{filename}.webm'):
-            play_path = f"./music/{filename}.webm"
-        elif os.path.exists(f'./music/{filename}.mp4'):
-            play_path = f"./music/{filename}.mp4"
-        else:
-            play_path = f"./music/{filename}.mkv"
-
-        
-        guild.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(play_path),volume=0.2), after=lambda e: asyncio.run_coroutine_threadsafe(play_next(guild,Discordclient), client.loop))
-
+        print(audio_name)
         await Discordclient(activity = discord.Activity(name=str(f"🎵 {audio_name}"), type=2))
+        guild.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename,options="-vn"),volume=0.2), after=lambda e: asyncio.run_coroutine_threadsafe(play_next(guild,Discordclient), client.loop))
         return audio_name
     else:
         await Discordclient(activity = discord.CustomActivity(name=str('まだ何も再生されていません'), type=1))
@@ -602,6 +610,26 @@ async def on_message(message):
             await message.reply("# 刑法168条の2第2項 不正指令電磁的記録供用罪\nそのような人の健康を害する曲を流すことは非人道的行為であり、やってはならないことです。\nこのような行為は最悪の場合、計画的殺人の罪となり極刑に処される場合もあることを肝に銘じてください。\nまじで次流そうとしたらぶっ殺すからな覚悟しとけよザコｗ\n本当にやめましょう。")
             return
         editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8"))
+        async def get_audio_source(url,cached_text):
+            """
+            ## YoutubeのURLから実際のオーディオが保存されているURLを返却する関数です。
+            args:
+                url=YouTubeの動画URL(例：https://www.youtube.com/watch/?v=xxxx)
+            """
+
+            cache = json.load(open(f'./cache.json', 'r',encoding="utf-8"))
+            if f"{cached_text}" in cache:
+                return cache[f"{cached_text}"]["filename"]
+
+            with YoutubeDL(ytdlp_options) as ydl:
+                try:
+                    info = ydl.extract_info(url, download=False)
+                    audio_url = info['url']
+                    return audio_url
+                except:
+                    await message.reply("この曲を再生することはできません。")
+                    return ""
+
         if f"{message.author.id}" in editlist:        
             if editlist[f"{message.author.id}"]["edit"] == True:
                 playlist_name = editlist[f"{message.author.id}"]["name"]
@@ -618,87 +646,16 @@ async def on_message(message):
                 # JSONファイルに新しいデータを書き込む
 
                 if "www.youtube.com/watch?v=" in message.content or "https://youtu.be/" in message.content:
-                    
-                    youtube_url = temp_audio_name #ここでいうaudio_nameはユーザーが送信したURL
-                    response = requests.get(youtube_url)
-                    youtube_title = str(BeautifulSoup(response.text, "html.parser").find("title")).replace(" - YouTube","").replace("<title>","").replace("</title>","")
-                    with open('./cache.json', 'r',encoding="utf-8") as file:
-                        data = json.load(file)
-                    # 読み込んだJSONデータをPythonの辞書に変換
-                    # これは前提としてJSONデータがオブジェクト（辞書）として始まっていることを前提としています
-                    # もしJSONデータが配列（リスト）から始まっている場合は、dataの要素に追加します
-                    # 例：data.append(new_data)
-                    data_as_dict = dict(data)
-                    # 新しい要素を辞書に追加
-                    filename = uuid.uuid4()
-                    new_data = {
-                        f"{temp_audio_name}": {
-                            "url":f"{youtube_url}",
-                            "filename":f"{filename}",
-                            "title":f"{youtube_title}"
-                        }
-                    }
-                    data_as_dict.update(new_data)
-                    # 更新された辞書をJSON形式に変換
-                    updated_json = json.dumps(data_as_dict, indent=4,ensure_ascii = False)
-                    # JSONファイルに新しいデータを書き込む
-                    with open('./cache.json', 'w',encoding="utf-8") as file:
-                        file.write(updated_json)
+                    try:
+                        youtube_url = temp_audio_name
+                        response = requests.get(youtube_url)
+                        youtube_title = str(BeautifulSoup(response.text, "html.parser").find("title")).replace(" - YouTube","").replace("<title>","").replace("</title>","")
+                    except:
+                        await message.reply("楽曲の取得に失敗しました！",silent=True,delete_after=5)
+                        return
                 else:
                     youtube_url = YouTube_Search(temp_audio_name,2) # ダウンロードとURLの取得
-                    
-                json_load = json.load(open('./cache.json', 'r',encoding="utf-8"))
-                filename = str(json_load[f'{temp_audio_name}']['filename'])
-                if not os.path.exists(f"./music/{filename}.webm"):
-                    options = {
-                        'outtmpl': f'./music/{filename}',
-                        'format': 'bestvideo[height<=144]+bestaudio/best[height<=144]' ,
-                        'res': 'fhd,hd',
-                        'vcodec': 'h264'
-                    }
-                    sub_options = {
-                        'outtmpl': f'./music/{filename}',
-                        'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]' ,
-                        'res': 'fhd,hd',
-                        'vcodec': 'h264'
-                    }
-
-                    try:
-                        with YoutubeDL(options) as ydl:
-                            ydl.extract_info(youtube_url, download=True)
-                    except Exception as e:
-                        try:
-                            with YoutubeDL(sub_options) as ydl:
-                                ydl.extract_info(youtube_url, download=True)
-                        except:
-                            print(e,flush=True)
-                            await message.reply("この曲を再生することはできません。")
-                            return
-                if not os.path.exists(f"./music/{filename}.mkv") and not os.path.exists(f"./music/{filename}.webm"):
-                    options = {
-                        'outtmpl': f'./music/{filename}',
-                        'format': 'bestvideo[height<=144]+bestaudio/best[height<=144]' ,
-                        'res': 'fhd,hd',
-                        'vcodec': 'h264'
-                    }
-                    sub_options = {
-                        'outtmpl': f'./music/{filename}',
-                        'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]' ,
-                        'res': 'fhd,hd',
-                        'vcodec': 'h264'
-                    }
-
-                    try:
-                        with YoutubeDL(options) as ydl:
-                            ydl.extract_info(youtube_url, download=True)
-                    except Exception as e:
-                        try:
-                            with YoutubeDL(sub_options) as ydl:
-                                ydl.extract_info(youtube_url, download=True)
-                        except:
-                            print(e,flush=True)
-                            await message.reply("この曲を再生することはできません。")
-                            return
+                    youtube_title = YouTube_Search(temp_audio_name,3)
                 with open(f'./playlist/{message.author.id}.json', 'w',encoding="utf-8") as file:
                     file.write(updated_json)
                 try:
@@ -709,11 +666,10 @@ async def on_message(message):
                 except:
                     await message.reply(f'楽曲を「{playlist_name}」に追加しました！',silent=True,delete_after=5) # ここにサムネイルを乗せたembedを追加
                 return
-
-        fixed_audio_name = ""
-        while(not temp_audio_name == fixed_audio_name):
-            fixed_audio_name = temp_audio_name 
-            temp_audio_name = temp_audio_name.replace('\n','')
+            
+# ここまでプレイリスト系の処理=======================================ﾔﾏｵﾘ===========================================================================================
+        
+        temp_audio_name = temp_audio_name.replace('\n','')
         try:
             if message.author.voice is None:
                 await message.reply("先にVCに参加してください",silent=True)
@@ -733,105 +689,30 @@ async def on_message(message):
             else:
                 await message.reply("例外的なエラーが発生しました！")
         
-        if "www.youtube.com/watch?v=" in message.content:
-            
-            youtube_url = temp_audio_name #ここでいうaudio_nameはユーザーが送信したURL
-            response = requests.get(youtube_url)
-            youtube_title = str(BeautifulSoup(response.text, "html.parser").find("title")).replace(" - YouTube","").replace("<title>","").replace("</title>","")
-            
-            with open('./cache.json', 'r',encoding="utf-8") as file:
-                data = json.load(file)
-            # 読み込んだJSONデータをPythonの辞書に変換
-            # これは前提としてJSONデータがオブジェクト（辞書）として始まっていることを前提としています
-            # もしJSONデータが配列（リスト）から始まっている場合は、dataの要素に追加します
-            # 例：data.append(new_data)
-            data_as_dict = dict(data)
-            # 新しい要素を辞書に追加
-            filename = uuid.uuid4()
-            new_data = {
-                f"{temp_audio_name}": {
-                    "url":f"{youtube_url}",
-                    "filename":f"{filename}",
-                    "title":f"{youtube_title}"
-                }
-            }
-            data_as_dict.update(new_data)
-            # 更新された辞書をJSON形式に変換
-            updated_json = json.dumps(data_as_dict, indent=4,ensure_ascii = False)
-            # JSONファイルに新しいデータを書き込む
-            with open('./cache.json', 'w',encoding="utf-8") as file:
-                file.write(updated_json)
+        if "www.youtube.com/watch?v=" in f"{message.content}" or "music.youtube.com/watch?v=" in f"{message.content}":
+            try:
+                youtube_url = temp_audio_name
+                response = requests.get(youtube_url)
+                youtube_title = str(BeautifulSoup(response.text, "html.parser").find("title")).replace(" - YouTube","").replace("<title>","").replace("</title>","")
+            except:
+                await message.reply("楽曲の取得に失敗しました！",silent=True,delete_after=5)
+                return
         else:
             youtube_url = YouTube_Search(temp_audio_name,2) # ダウンロードとURLの取得
-
-        json_load = json.load(open('./cache.json', 'r',encoding="utf-8"))
-        filename = str(json_load[f'{temp_audio_name}']['filename'])
-        youtube_audio_name = str(json_load[f'{temp_audio_name}']['title'])
+            youtube_title = YouTube_Search(temp_audio_name,3)
         
         # if youtube_url == None:
         #     await message.reply(f'「{audio_name}」という曲は見つかりませんでした...\nアーティスト名などを含めてリクエストすると見つかるかもしれません！',silent=True)
         #     return
-        if not os.path.exists(f"./music/{filename}.webm"):
-            options = {
-                'outtmpl': f'./music/{filename}',
-                'format': 'bestvideo[height<=144]+bestaudio/best[height<=144]' ,
-                'res': 'fhd,hd',
-                'vcodec': 'h264'
-            }
-            sub_options = {
-                'outtmpl': f'./music/{filename}',
-                'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]' ,
-                'res': 'fhd,hd',
-                'vcodec': 'h264'
-            }
 
-            try:
-                with YoutubeDL(options) as ydl:
-                    ydl.extract_info(youtube_url, download=True)
-            except Exception as e:
-                try:
-                    with YoutubeDL(sub_options) as ydl:
-                        ydl.extract_info(youtube_url, download=True)
-                except:
-                    print(e,flush=True)
-                    await message.reply("この曲を再生することはできません。")
-                    return
-
-        if not os.path.exists(f"./music/{filename}.mkv") and not os.path.exists(f"./music/{filename}.webm"):
-            options = {
-                'outtmpl': f'./music/{filename}',
-                'format': 'bestvideo[height<=144]+bestaudio/best[height<=144]' ,
-                'res': 'fhd,hd',
-                'vcodec': 'h264'
-            }
-            sub_options = {
-                'outtmpl': f'./music/{filename}',
-                'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]' ,
-                'res': 'fhd,hd',
-                'vcodec': 'h264'
-            }
-
-            try:
-                with YoutubeDL(options) as ydl:
-                    ydl.extract_info(youtube_url, download=True)
-            except Exception as e:
-                try:
-                    with YoutubeDL(sub_options) as ydl:
-                        ydl.extract_info(youtube_url, download=True)
-                except:
-                    print(e,flush=True)
-                    await message.reply("この曲を再生することはできません。")
-                    return
-            # YouTube_DLでダウンロードした動画ファイルをmp3に変換 (する予定だったけどWEBMの状態でも再生できることが判明)
-            #stream = ffmpeg.input(f"./music/{filename}.webm")
-            #stream = ffmpeg.output(stream, f"./music/{filename}.mp3") 
-            #ffmpeg.run(stream)
-            # os.remove(f'./music/{filename}.webm') # 動画データが延々と溜まっていってしまうのでここで消去
-
+        filename = await get_audio_source(url=youtube_url,cached_text=temp_audio_name)
         # 再生キューに追加
-        play_queue.put((filename,youtube_audio_name))
+        play_queue.put((filename,youtube_title))
 
         # 再生中でなければ音楽を再生
+        if not message.guild.voice_client.is_playing():
+            # await play_next(message.guild,client.change_presence)
+            asyncio.run_coroutine_threadsafe(play_next(message.guild,client.change_presence), client.loop)
         try:
             response = requests.get(youtube_url)
             youtube_title = str(BeautifulSoup(response.text, "html.parser").find("title")).replace(" - YouTube","").replace("<title>","").replace("</title>","")
@@ -841,8 +722,7 @@ async def on_message(message):
             await message.reply(embed=embed,silent=True,delete_after=5)
         except Exception as e:
             print(e)
-        if not message.guild.voice_client.is_playing():
-            await play_next(message.guild,client.change_presence)
+
 
 # クライアントインスタンスを開始
 client.run(TOKEN)
