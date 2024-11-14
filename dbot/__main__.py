@@ -533,13 +533,15 @@ async def on_message_delete(message):
                 global audio_name
                 message_content = message.content.replace(f'<@{APPLICATION_ID}> ','').replace(f'<@{APPLICATION_ID}>','')
                 json_load = json.load(open('./cache.json', 'r',encoding="utf-8"))
-                if audio_name == json_load[f'{message_content}']["title"]:
-                    message.guild.voice_client.stop()
-                    if message.author.name == "makao1521":
-                        await message.channel.send(f'<@{message.author.id}> \n# ばーかばーか\n(再生を停止しました)',silent=True)
-                    else:
-                        await message.channel.send(content='リクエストメッセージが削除されたため、再生を停止しました！',delete_after=5,silent=True)
-
+                try:
+                    if audio_name == json_load[f'{message_content}']["title"]:
+                        message.guild.voice_client.stop()
+                        if message.author.name == "makao1521":
+                            await message.channel.send(f'<@{message.author.id}> \n# ばーかばーか\n(再生を停止しました)',silent=True)
+                        else:
+                            await message.channel.send(content='リクエストメッセージが削除されたため、再生を停止しました！',delete_after=5,silent=True)
+                except:
+                    pass
 @client.event
 async def on_message(message):
     # メッセージの送信者がbotだった場合は無視する
