@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-import os,discord,uuid,asyncio,queue,requests,json,ffmpeg,random
+import os,discord,asyncio,queue,requests,json,ffmpeg,random,io
 from os.path import join, dirname
 from dotenv import load_dotenv
 from discord import app_commands
@@ -127,9 +127,8 @@ async def play_next(guild,Discordclient):
     if not play_queue.empty():
         global audio_name
         filename, audio_name = play_queue.get()
-        print(audio_name)
         await Discordclient(activity = discord.Activity(name=str(f"🎵 {audio_name}"), type=2))
-        guild.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(filename,options="-vn"),volume=0.2), after=lambda e: asyncio.run_coroutine_threadsafe(play_next(guild,Discordclient), client.loop))
+        guild.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(source=filename,before_options="-vn",options=""),volume=0.2), after=lambda e: asyncio.run_coroutine_threadsafe(play_next(guild,Discordclient), client.loop))
         return audio_name
     else:
         await Discordclient(activity = discord.CustomActivity(name=str('まだ何も再生されていません'), type=1))
@@ -617,9 +616,10 @@ async def on_message(message):
                 url=YouTubeの動画URL(例：https://www.youtube.com/watch/?v=xxxx)
             """
 
-            cache = json.load(open(f'./cache.json', 'r',encoding="utf-8"))
-            if f"{cached_text}" in cache:
-                return cache[f"{cached_text}"]["filename"]
+            # cache = json.load(open(f'./cache.json', 'r',encoding="utf-8"))
+            # if f"{cached_text}" in cache:
+            #     return cache[f"{cached_text}"]["filename"]
+            # yt_dlpから返却されるURLは恒久的なものではないっぽいのでここの処理は廃止
 
             with YoutubeDL(ytdlp_options) as ydl:
                 try:
@@ -678,15 +678,17 @@ async def on_message(message):
             elif message.guild.voice_client is None:
                 await message.author.voice.channel.connect(self_deaf=True) # ボイスチャンネルに接続する
             elif message.guild.voice_client:
+                print("既にVCに参加済み",flush=True)
                 pass
             else:
                 await message.reply("VCに参加できません",silent=True)
                 return
-        except:
+        except Exception as e:
             if not message.guild:
                 await message.reply("DMではリクエストを行うことができません！\n利用可能なVCに参加した状態でサーバーからリクエストしてください！")
                 return
             else:
+                print(e,flush=True)
                 await message.reply("例外的なエラーが発生しました！")
         
         if "www.youtube.com/watch?v=" in f"{message.content}" or "music.youtube.com/watch?v=" in f"{message.content}":

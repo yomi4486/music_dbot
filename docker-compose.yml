@@ -9,5 +9,5 @@ services:
       image: alpine3.14
       dns:
        - 8.8.8.8
-      volumes:
-       - /music_dbot # 正しいパスに書き換えてください
+      # volumes:
+      #  - /music_dbot
