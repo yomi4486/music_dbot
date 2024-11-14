@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-import os,discord,asyncio,queue,requests,json,ffmpeg,random,io
+import os,discord,asyncio,queue,requests,json,ffmpeg,random,io,aiohttp,uuid
 from os.path import join, dirname
 from dotenv import load_dotenv
 from discord import app_commands
@@ -35,7 +35,7 @@ ytdlp_options = {
     'quiet': True,
     'no_warnings':True,
     # 'extractaudio': True,
-    'audioformat': 'wav'
+    'audioformat': 'wav',
 }
 
 client = discord.Client(intents = discord.Intents.all())
@@ -128,7 +128,7 @@ async def play_next(guild,Discordclient):
         global audio_name
         filename, audio_name = play_queue.get()
         await Discordclient(activity = discord.Activity(name=str(f"🎵 {audio_name}"), type=2))
-        guild.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(source=filename,before_options="-vn",options=""),volume=0.2), after=lambda e: asyncio.run_coroutine_threadsafe(play_next(guild,Discordclient), client.loop))
+        guild.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(source=filename,before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"),volume=0.2), after=lambda e: asyncio.run_coroutine_threadsafe(play_next(guild,Discordclient), client.loop))
         return audio_name
     else:
         await Discordclient(activity = discord.CustomActivity(name=str('まだ何も再生されていません'), type=1))
@@ -619,7 +619,6 @@ async def on_message(message):
             # cache = json.load(open(f'./cache.json', 'r',encoding="utf-8"))
             # if f"{cached_text}" in cache:
             #     return cache[f"{cached_text}"]["filename"]
-            # yt_dlpから返却されるURLは恒久的なものではないっぽいのでここの処理は廃止
 
             with YoutubeDL(ytdlp_options) as ydl:
                 try:
@@ -678,7 +677,6 @@ async def on_message(message):
             elif message.guild.voice_client is None:
                 await message.author.voice.channel.connect(self_deaf=True) # ボイスチャンネルに接続する
             elif message.guild.voice_client:
-                print("既にVCに参加済み",flush=True)
                 pass
             else:
                 await message.reply("VCに参加できません",silent=True)
@@ -713,8 +711,8 @@ async def on_message(message):
 
         # 再生中でなければ音楽を再生
         if not message.guild.voice_client.is_playing():
-            # await play_next(message.guild,client.change_presence)
-            asyncio.run_coroutine_threadsafe(play_next(message.guild,client.change_presence), client.loop)
+            await play_next(message.guild,client.change_presence)
+        
         try:
             response = requests.get(youtube_url)
             youtube_title = str(BeautifulSoup(response.text, "html.parser").find("title")).replace(" - YouTube","").replace("<title>","").replace("</title>","")
