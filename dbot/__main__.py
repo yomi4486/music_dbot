@@ -4,7 +4,7 @@ from os.path import join, dirname
 from dotenv import load_dotenv
 from discord import app_commands
 from yt_dlp import YoutubeDL
-from apiclient.discovery import build
+from apiclient import discovery
 from bs4 import BeautifulSoup
 
 # envを読むための設定なあああああああああああああああああああああああああああああああああああああああああああああああうんちいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいい
@@ -17,7 +17,7 @@ API_KEY = os.environ.get("YOUTUBE_API_KEY")
 YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
 
-youtube = build(
+youtube = discovery.build(
     YOUTUBE_API_SERVICE_NAME,
     YOUTUBE_API_VERSION,
     developerKey=API_KEY
