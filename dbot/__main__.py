@@ -431,12 +431,12 @@ async def test_command(interaction: discord.Interaction, プレイリスト名:s
                     i=0
                     for w in ns:
                         request_name = json_load[f"{プレイリスト名}"][w]
-                        
                         try:
                             youtube_audio_name = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['title'])
+                            yt_url = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['url'])
                         except:
                             break
-                        filename = __get_audio_url__(url=request_name)
+                        filename = __get_audio_url__(url=yt_url)
                         play_queue.put((filename,youtube_audio_name))
                         
                         if (not interaction.guild.voice_client.is_playing()) and i==0:
@@ -449,9 +449,10 @@ async def test_command(interaction: discord.Interaction, プレイリスト名:s
                     for w in json_load[f"{プレイリスト名}"]:
                         try:
                             youtube_audio_name = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['title'])
+                            yt_url = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['url'])
                         except:
                             break
-                        filename = __get_audio_url__(url=request_name)
+                        filename = __get_audio_url__(url=yt_url)
                         play_queue.put((filename,youtube_audio_name))
                         if (not interaction.guild.voice_client.is_playing()) and i==0:
                             await play_next(interaction.guild,client.change_presence)
