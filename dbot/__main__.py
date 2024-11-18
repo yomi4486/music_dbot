@@ -428,21 +428,26 @@ async def test_command(interaction: discord.Interaction, プレイリスト名:s
                         if not n in ns:
                             ns.append(n)
                     await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」から、{music_length}曲の楽曲をシャッフルしてお届けします！',delete_after=5,silent=True)
+                    i=0
                     for w in ns:
                         request_name = json_load[f"{プレイリスト名}"][w]
                         filename = __get_audio_url__(url=request_name)
                         youtube_audio_name = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['title'])
                         play_queue.put((filename,youtube_audio_name))
+                        if (not interaction.guild.voice_client.is_playing()) and i==0:
+                            await play_next(interaction.guild,client.change_presence)
+                        i+=1
                     
                 else:
                     await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」から、{music_length}曲の楽曲をお届けします！',delete_after=5,silent=True)
+                    i=0
                     for w in json_load[f"{プレイリスト名}"]:
                         filename = __get_audio_url__(url=request_name)
                         youtube_audio_name = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{w}']['title'])
                         play_queue.put((filename,youtube_audio_name))
-                    
-                if not interaction.guild.voice_client.is_playing():
-                    await play_next(interaction.guild,client.change_presence)
+                        if (not interaction.guild.voice_client.is_playing()) and i==0:
+                            await play_next(interaction.guild,client.change_presence)
+                        i+=1
                 return
             else:
                 await interaction.response.send_message(content=f'「{プレイリスト名}」というプレイリストは見つかりませんでした',delete_after=5,silent=True)
