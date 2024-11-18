@@ -427,18 +427,20 @@ async def test_command(interaction: discord.Interaction, プレイリスト名:s
                         n = random.randint(0, (music_length - 1))
                         if not n in ns:
                             ns.append(n)
+                    await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」から、{music_length}曲の楽曲をシャッフルしてお届けします！',delete_after=5,silent=True)
                     for w in ns:
                         request_name = json_load[f"{プレイリスト名}"][w]
-                        filename = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['filename'])
+                        filename = __get_audio_url__(url=request_name)
                         youtube_audio_name = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['title'])
                         play_queue.put((filename,youtube_audio_name))
-                    await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」から、{music_length}曲の楽曲をシャッフルしてお届けします！',delete_after=5,silent=True)
+                    
                 else:
+                    await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」から、{music_length}曲の楽曲をお届けします！',delete_after=5,silent=True)
                     for w in json_load[f"{プレイリスト名}"]:
-                        filename = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{w}']['filename'])
+                        filename = __get_audio_url__(url=request_name)
                         youtube_audio_name = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{w}']['title'])
                         play_queue.put((filename,youtube_audio_name))
-                    await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」から、{music_length}曲の楽曲をお届けします！',delete_after=5,silent=True)
+                    
                 if not interaction.guild.voice_client.is_playing():
                     await play_next(interaction.guild,client.change_presence)
                 return
