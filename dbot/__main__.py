@@ -395,9 +395,9 @@ async def test_command(interaction: discord.Interaction ,曲名:str):
             
 
 @tree.command(name="play",description="プレイリストを再生します。シャッフル再生する場合はオプションをTrueに設定してください。")
-async def test_command(interaction: discord.Interaction, プレイリスト名:str,シャッフル:bool):
+async def play_command(interaction: discord.Interaction, プレイリスト名:str,シャッフル:bool):
             # JSONファイルを読み込む
-
+            global play_queue
             playlist_name = f"{interaction.user.id}.json"
             if not os.path.exists(f'./playlist/{playlist_name}'):
                 await interaction.response.send_message(content=f'プレイリストがありません。',delete_after=5,silent=True)
@@ -463,7 +463,7 @@ async def test_command(interaction: discord.Interaction, プレイリスト名:s
                 return
 
 @tree.command(name="reference_playlist",description="プレイリストを参照します")
-async def test_command(interaction: discord.Interaction, プレイリスト名:str):
+async def reference_playlist_command(interaction: discord.Interaction, プレイリスト名:str):
             # JSONファイルを読み込む
 
             playlist_name = f"{interaction.user.id}.json"
@@ -541,7 +541,7 @@ async def test_command(interaction: discord.Interaction):
             await interaction.response.send_message(content=f'## プレイリスト一覧\n{queue_list}',silent=True)
 
 @client.event
-async def on_message_delete(message):
+async def on_message_delete(message:discord.Message):
     if message.guild.voice_client is None:
         return
     if f'<@{APPLICATION_ID}>' in message.content:
@@ -559,7 +559,7 @@ async def on_message_delete(message):
                 except:
                     pass
 @client.event
-async def on_message(message):
+async def on_message(message:discord.Message):
     # メッセージの送信者がbotだった場合は無視する
     if message.author.bot:
         return
@@ -622,9 +622,6 @@ async def on_message(message):
         temp_audio_name = message.content.replace(f'<@{APPLICATION_ID}> ','').replace(f'<@{APPLICATION_ID}>','')
         if temp_audio_name.replace(' ','') == '':
             await message.reply('こんにちは！使い方を知りたい場合は、`/help`コマンドを実行してください！',silent=True)
-            return
-        if "super idol" in message.content.lower():
-            await message.reply("# 刑法168条の2第2項 不正指令電磁的記録供用罪\nそのような人の健康を害する曲を流すことは非人道的行為であり、やってはならないことです。\nこのような行為は最悪の場合、計画的殺人の罪となり極刑に処される場合もあることを肝に銘じてください。\nまじで次流そうとしたらぶっ殺すからな覚悟しとけよザコｗ\n本当にやめましょう。")
             return
         editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8"))
         async def get_audio_source(url,cached_text):
