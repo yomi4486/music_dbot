@@ -204,7 +204,7 @@ async def test_command(interaction: discord.Interaction):
         await interaction.response.send_message(content='まだ何も再生されていません！',delete_after=5,silent=True)
 
 @tree.command(name="pause",description="再生を一時停止します。再開する場合はresumeコマンドを実行してください")
-async def test_command(interaction: discord.Interaction):
+async def pause_command(interaction: discord.Interaction):
     global audio_name
     if not interaction.guild:
         await interaction.response.send_message('このコマンドはDMでは使えません！',silent=True)
@@ -224,7 +224,7 @@ async def test_command(interaction: discord.Interaction):
         
 
 @tree.command(name="resume",description="再生を再開します。")
-async def test_command(interaction: discord.Interaction):
+async def resume_command(interaction: discord.Interaction):
     global audio_name
     if not interaction.guild:
         await interaction.response.send_message('このコマンドはDMでは使えません！',silent=True)
@@ -253,7 +253,7 @@ async def test_command(interaction: discord.Interaction):
         await interaction.response.send_message(content='既に再生されているか、まだ一時停止されているものがありません',delete_after=5,silent=True)
 
 @tree.command(name="create_playlist",description="あなた専用のプレイリストを作成します。")
-async def test_command(interaction: discord.Interaction ,プレイリスト名:str):
+async def create_command(interaction: discord.Interaction ,プレイリスト名:str):
             # JSONファイルを読み込む
             
             playlist_name = f"{interaction.user.id}.json"
@@ -286,7 +286,7 @@ async def test_command(interaction: discord.Interaction ,プレイリスト名:s
             await interaction.response.send_message(content=f'「{プレイリスト名}」というプレイリストを作成しました。\n`/editplaylist`でプレイリストを選択し、編集を開始してください！',silent=True)
     
 @tree.command(name="edit_playlist",description="プレイリストの編集を行います。")
-async def test_command(interaction: discord.Interaction ,プレイリスト名:str):
+async def edit_playlist_command(interaction: discord.Interaction ,プレイリスト名:str):
             # JSONファイルを読み込む
 
             playlist_name = f"{interaction.user.id}.json"
@@ -326,7 +326,7 @@ async def test_command(interaction: discord.Interaction ,プレイリスト名:s
             await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」の編集モードを開始します。いつも通りリクエストメッセージを送信すると、プレイリストに曲を追加します。`/saveplaylist`で編集を終了できます。',silent=True)
 
 @tree.command(name="save_playlist",description="プレイリストの編集を終了します。")
-async def test_command(interaction: discord.Interaction):
+async def save_playlist_command(interaction: discord.Interaction):
             # JSONファイルを読み込む
 
             playlist_name = f"{interaction.user.id}.json"
@@ -363,7 +363,7 @@ async def test_command(interaction: discord.Interaction):
             await interaction.response.send_message(content=f'プレイリスト「{playlist_name}」の編集モードを終了します。',delete_after=5,silent=True)
 
 @tree.command(name="remove",description="編集中のプレイリストから指定の曲を削除します")
-async def test_command(interaction: discord.Interaction ,曲名:str):
+async def remove_command(interaction: discord.Interaction ,曲名:str):
             # JSONファイルを読み込む
 
             if not os.path.exists(f'./playlist/{interaction.user.id}.json'):
@@ -502,7 +502,7 @@ async def reference_playlist_command(interaction: discord.Interaction, プレイ
                 return
 
 @tree.command(name="delete_playlist",description="プレイリストを削除します。")
-async def test_command(interaction: discord.Interaction, プレイリスト名:str):
+async def delete_playlist_command(interaction: discord.Interaction, プレイリスト名:str):
             editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8"))
             if editlist[f"{interaction.user.id}"]["edit"] == True:
                 await interaction.response.send_message(content=f'プレイリストの編集を終了させてからコマンドを実行してください。',delete_after=5,silent=True)
@@ -527,18 +527,28 @@ async def test_command(interaction: discord.Interaction, プレイリスト名:s
                 return
 
 @tree.command(name="list_playlist",description="作成したプレイリストをすべて表示します。")
-async def test_command(interaction: discord.Interaction):
-            # JSONファイルを読み込む
+async def list_playlist_command(interaction: discord.Interaction):
+    playlist_name = f"{interaction.user.id}.json"
+    if not os.path.exists(f'./playlist/{playlist_name}'):
+        await interaction.response.send_message(content=f'プレイリストがありません。',delete_after=5,silent=True)
+        return
+    json_load = json.load(open(f'./playlist/{playlist_name}', 'r',encoding="utf-8"))
+    queue_list = ""
+    for w in json_load:
+        queue_list = f"{queue_list}- {w}\n" 
+    await interaction.response.send_message(content=f'## プレイリスト一覧\n{queue_list}',silent=True)
 
-            playlist_name = f"{interaction.user.id}.json"
-            if not os.path.exists(f'./playlist/{playlist_name}'):
-                await interaction.response.send_message(content=f'プレイリストがありません。',delete_after=5,silent=True)
-                return
-            json_load = json.load(open(f'./playlist/{playlist_name}', 'r',encoding="utf-8"))
-            queue_list = ""
-            for w in json_load:
-                queue_list = f"{queue_list}- {w}\n" 
-            await interaction.response.send_message(content=f'## プレイリスト一覧\n{queue_list}',silent=True)
+@tree.command(name="clear",description="キューを空にします")
+async def clear_command(interaction: discord.Interaction):
+    global play_queue
+    index = 0
+    while not play_queue.empty():
+        play_queue.get()
+        index +=1
+    if index == 0:
+        await interaction.response.send_message("キューに曲は入っていません。",delete_after=5)
+    else:
+        await interaction.response.send_message(f"キューに入っている{index}曲を削除しました")
 
 @client.event
 async def on_message_delete(message:discord.Message):
