@@ -153,27 +153,27 @@ async def on_voice_state_update(member, before, after):
     
 @tree.command(name="help",description="Botの説明を表示します。")
 async def test_command(interaction: discord.Interaction):
-        embed = discord.Embed(title="使用方法",description="基本的にはこのBotではコマンドを使用する必要はありません。")
-        embed.add_field(name='概要', inline=False ,value='')
-        embed.add_field(name='「@BMA 曲名」と送信すると、自動であなたがいるVCに参加し、指定の曲名の音楽を再生します。', value='')
-        embed.add_field(name='コマンド（一般）', inline=False ,value='')
-        embed.add_field(name='`/bye`', value='VCから退出させます（VCに人がいなくなったときに勝手に退出するので、普段は使用する必要はありません。）')
-        embed.add_field(name='`/help`', value='Botの説明を表示します。')
-        embed.add_field(name='`%url`', value='リクエストを送信したメッセージに対してリプライを行うと、再生した楽曲の詳細について教えてくれます。')
-        embed.add_field(name='`/skip`', value='次の曲にスキップします。')
-        embed.add_field(name='`/stop`', value='再生を停止します')
-        embed.add_field(name='`/pause`', value='曲を一時停止します')
-        embed.add_field(name='`/resume`', value='一時停止した曲を再開します')
-        embed.add_field(name='コマンド（プレイリスト系）', inline=False ,value='')
-        embed.add_field(name='`/create_playlist`', value='あなた専用のプレイリストを作成します。')
-        embed.add_field(name='`/delete`', value='プレイリストを削除します。')
-        embed.add_field(name='`/edit_playlist`', value='プレイリストの編集を行います。')
-        embed.add_field(name='`/list_playlist`', value='作成したプレイリストをすべて表示します。')
-        embed.add_field(name='`/reference_playlist`', value='指定したプレイリストを参照します')
-        embed.add_field(name='`/remove`', value='編集中のプレイリストから指定の曲を削除します')
-        embed.add_field(name='`/save_playlist`', value='プレイリストの編集を終了します。')
+    embed = discord.Embed(title="使用方法",description="基本的にはこのBotではコマンドを使用する必要はありません。")
+    embed.add_field(name='概要', inline=False ,value='')
+    embed.add_field(name='「@BMA 曲名」と送信すると、自動であなたがいるVCに参加し、指定の曲名の音楽を再生します。', value='')
+    embed.add_field(name='コマンド（一般）', inline=False ,value='')
+    embed.add_field(name='`/bye`', value='VCから退出させます（VCに人がいなくなったときに勝手に退出するので、普段は使用する必要はありません。）')
+    embed.add_field(name='`/help`', value='Botの説明を表示します。')
+    embed.add_field(name='`%url`', value='リクエストを送信したメッセージに対してリプライを行うと、再生した楽曲の詳細について教えてくれます。')
+    embed.add_field(name='`/skip`', value='次の曲にスキップします。')
+    embed.add_field(name='`/stop`', value='再生を停止します')
+    embed.add_field(name='`/pause`', value='曲を一時停止します')
+    embed.add_field(name='`/resume`', value='一時停止した曲を再開します')
+    embed.add_field(name='コマンド（プレイリスト系）', inline=False ,value='')
+    embed.add_field(name='`/create_playlist`', value='あなた専用のプレイリストを作成します。')
+    embed.add_field(name='`/delete`', value='プレイリストを削除します。')
+    embed.add_field(name='`/edit_playlist`', value='プレイリストの編集を行います。')
+    embed.add_field(name='`/list_playlist`', value='作成したプレイリストをすべて表示します。')
+    embed.add_field(name='`/reference_playlist`', value='指定したプレイリストを参照します')
+    embed.add_field(name='`/remove`', value='編集中のプレイリストから指定の曲を削除します')
+    embed.add_field(name='`/save_playlist`', value='プレイリストの編集を終了します。')
 
-        await interaction.response.send_message(embed=embed,ephemeral=True)
+    await interaction.response.send_message(embed=embed,ephemeral=True)
 
 @tree.command(name="bye",description="VCから退出させます（VCに人がいなくなったときに勝手に退出するので、普段は使用する必要はありません。）")
 async def test_command(interaction: discord.Interaction):
@@ -254,277 +254,274 @@ async def resume_command(interaction: discord.Interaction):
 
 @tree.command(name="create_playlist",description="あなた専用のプレイリストを作成します。")
 async def create_command(interaction: discord.Interaction ,プレイリスト名:str):
-            # JSONファイルを読み込む
-            
-            playlist_name = f"{interaction.user.id}.json"
-            if not os.path.exists(f'./playlist/{playlist_name}'):
-                f = open(f'./playlist/{playlist_name}', 'w',encoding="utf-8")
-                f.write('{}')
-                f.close()
-            json_load = json.load(open(f'./playlist/{playlist_name}', 'r',encoding="utf-8"))
-            if f"{プレイリスト名}" in json_load:
-                await interaction.response.send_message(content=f'「{プレイリスト名}」というプレイリストは既に存在しています！ぜひ、`/editplaylist`で曲を追加してください！',silent=True)
-                return
-            
-            with open(f'./playlist/{playlist_name}', 'r',encoding="utf-8") as file:
-                data = json.load(file)
-            # 読み込んだJSONデータをPythonの辞書に変換
-            # これは前提としてJSONデータがオブジェクト（辞書）として始まっていることを前提としています
-            # もしJSONデータが配列（リスト）から始まっている場合は、dataの要素に追加します
-            # 例：data.append(new_data)
-            data_as_dict = dict(data)
-            # 新しい要素を辞書に追加
-            new_data = {
-                f"{プレイリスト名}":[]
-            }
-            data_as_dict.update(new_data)
-            # 更新された辞書をJSON形式に変換
-            updated_json = json.dumps(data_as_dict, indent=4,ensure_ascii = False)
-            # JSONファイルに新しいデータを書き込む
-            with open(f'./playlist/{playlist_name}', 'w',encoding="utf-8") as file:
-                file.write(updated_json)
-            await interaction.response.send_message(content=f'「{プレイリスト名}」というプレイリストを作成しました。\n`/editplaylist`でプレイリストを選択し、編集を開始してください！',silent=True)
+    # JSONファイルを読み込む
     
+    playlist_name = f"{interaction.user.id}.json"
+    if not os.path.exists(f'./playlist/{playlist_name}'):
+        f = open(f'./playlist/{playlist_name}', 'w',encoding="utf-8")
+        f.write('{}')
+        f.close()
+    json_load = json.load(open(f'./playlist/{playlist_name}', 'r',encoding="utf-8"))
+    if f"{プレイリスト名}" in json_load:
+        await interaction.response.send_message(content=f'「{プレイリスト名}」というプレイリストは既に存在しています！ぜひ、`/editplaylist`で曲を追加してください！',silent=True)
+        return
+    
+    with open(f'./playlist/{playlist_name}', 'r',encoding="utf-8") as file:
+        data = json.load(file)
+    # 読み込んだJSONデータをPythonの辞書に変換
+    # これは前提としてJSONデータがオブジェクト（辞書）として始まっていることを前提としています
+    # もしJSONデータが配列（リスト）から始まっている場合は、dataの要素に追加します
+    # 例：data.append(new_data)
+    data_as_dict = dict(data)
+    # 新しい要素を辞書に追加
+    new_data = {
+        f"{プレイリスト名}":[]
+    }
+    data_as_dict.update(new_data)
+    # 更新された辞書をJSON形式に変換
+    updated_json = json.dumps(data_as_dict, indent=4,ensure_ascii = False)
+    # JSONファイルに新しいデータを書き込む
+    with open(f'./playlist/{playlist_name}', 'w',encoding="utf-8") as file:
+        file.write(updated_json)
+    await interaction.response.send_message(content=f'「{プレイリスト名}」というプレイリストを作成しました。\n`/editplaylist`でプレイリストを選択し、編集を開始してください！',silent=True)
+
 @tree.command(name="edit_playlist",description="プレイリストの編集を行います。")
 async def edit_playlist_command(interaction: discord.Interaction ,プレイリスト名:str):
-            # JSONファイルを読み込む
+    # JSONファイルを読み込む
 
-            playlist_name = f"{interaction.user.id}.json"
-            if not os.path.exists(f'./playlist/{playlist_name}'):
-                os.mkdir(f'./playlist/{playlist_name}')
-            json_load = json.load(open(f'./playlist/{playlist_name}', 'r',encoding="utf-8"))
-            editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8")) 
-            if f"{interaction.user.id}" in editlist:
-                if editlist[f"{interaction.user.id}"]["edit"] == True:
-                    playlist_name = editlist[f"{interaction.user.id}"]["name"]
-                    await interaction.response.send_message(content=f'現在「{playlist_name}」というプレイリストの編集が続行中です。ほかのプレイリストを編集したい場合は、`/saveplaylist`で編集を終了してください。',delete_after=5,silent=True)
-                    return
-            if not f"{プレイリスト名}" in json_load:
-                await interaction.response.send_message(content=f'あなたは「{プレイリスト名}」というプレイリストを作成していません。\n`/createplaylist`で先にプレイリストを作成してください！',delete_after=5,silent=True)
-                return
-            
-            with open(f'./playlist/editlist.json', 'r',encoding="utf-8") as file:
-                data = json.load(file)
-            # 読み込んだJSONデータをPythonの辞書に変換
-            # これは前提としてJSONデータがオブジェクト（辞書）として始まっていることを前提としています
-            # もしJSONデータが配列（リスト）から始まっている場合は、dataの要素に追加します
-            # 例：data.append(new_data)
-            data_as_dict = dict(data)
-            # 新しい要素を辞書に追加
-            new_data = {
-                f"{interaction.user.id}":{
-                    "edit":True,
-                    "name":f"{プレイリスト名}" 
-                }
-            }
-            data_as_dict.update(new_data)
-            # 更新された辞書をJSON形式に変換
-            updated_json = json.dumps(data_as_dict, indent=4,ensure_ascii = False)
-            # JSONファイルに新しいデータを書き込む
-            with open(f'./playlist/editlist.json', 'w',encoding="utf-8") as file:
-                file.write(updated_json)
-            await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」の編集モードを開始します。いつも通りリクエストメッセージを送信すると、プレイリストに曲を追加します。`/saveplaylist`で編集を終了できます。',silent=True)
+    playlist_name = f"{interaction.user.id}.json"
+    if not os.path.exists(f'./playlist/{playlist_name}'):
+        os.mkdir(f'./playlist/{playlist_name}')
+    json_load = json.load(open(f'./playlist/{playlist_name}', 'r',encoding="utf-8"))
+    editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8")) 
+    if f"{interaction.user.id}" in editlist:
+        if editlist[f"{interaction.user.id}"]["edit"] == True:
+            playlist_name = editlist[f"{interaction.user.id}"]["name"]
+            await interaction.response.send_message(content=f'現在「{playlist_name}」というプレイリストの編集が続行中です。ほかのプレイリストを編集したい場合は、`/saveplaylist`で編集を終了してください。',delete_after=5,silent=True)
+            return
+    if not f"{プレイリスト名}" in json_load:
+        await interaction.response.send_message(content=f'あなたは「{プレイリスト名}」というプレイリストを作成していません。\n`/createplaylist`で先にプレイリストを作成してください！',delete_after=5,silent=True)
+        return
+    
+    with open(f'./playlist/editlist.json', 'r',encoding="utf-8") as file:
+        data = json.load(file)
+    # 読み込んだJSONデータをPythonの辞書に変換
+    # これは前提としてJSONデータがオブジェクト（辞書）として始まっていることを前提としています
+    # もしJSONデータが配列（リスト）から始まっている場合は、dataの要素に追加します
+    # 例：data.append(new_data)
+    data_as_dict = dict(data)
+    # 新しい要素を辞書に追加
+    new_data = {
+        f"{interaction.user.id}":{
+            "edit":True,
+            "name":f"{プレイリスト名}" 
+        }
+    }
+    data_as_dict.update(new_data)
+    # 更新された辞書をJSON形式に変換
+    updated_json = json.dumps(data_as_dict, indent=4,ensure_ascii = False)
+    # JSONファイルに新しいデータを書き込む
+    with open(f'./playlist/editlist.json', 'w',encoding="utf-8") as file:
+        file.write(updated_json)
+    await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」の編集モードを開始します。いつも通りリクエストメッセージを送信すると、プレイリストに曲を追加します。`/saveplaylist`で編集を終了できます。',silent=True)
 
 @tree.command(name="save_playlist",description="プレイリストの編集を終了します。")
 async def save_playlist_command(interaction: discord.Interaction):
-            # JSONファイルを読み込む
+    # JSONファイルを読み込む
 
-            playlist_name = f"{interaction.user.id}.json"
-            if not os.path.exists(f'./playlist/{playlist_name}'):
-                await interaction.response.send_message(content=f'プレイリストが編集モードになっていません。',delete_after=5,silent=True)
-                return
-            editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8"))
-            if not editlist[f"{interaction.user.id}"]["edit"] == True:
-                await interaction.response.send_message(content=f'プレイリストが編集モードになっていません。',delete_after=5,silent=True)
-                return
-            playlist_name = editlist[f"{interaction.user.id}"]["name"]
-            with open(f'./playlist/editlist.json', 'r',encoding="utf-8") as file:
-                data = json.load(file)
-            # 読み込んだJSONデータをPythonの辞書に変換
-            # これは前提としてJSONデータがオブジェクト（辞書）として始まっていることを前提としています
-            # もしJSONデータが配列（リスト）から始まっている場合は、dataの要素に追加します
-            # 例：data.append(new_data)
-            data_as_dict = dict(data)
-            # 新しい要素を辞書に追加
-            #edit : 編集中であるかどうか
-            #name : 何のプレイリストを編集しているのか
-            new_data = {
-                f"{interaction.user.id}":{
-                    "edit":False,
-                }
-            }
-            data_as_dict.update(new_data)
-            # 更新された辞書をJSON形式に変換
-            updated_json = json.dumps(data_as_dict, indent=4,ensure_ascii = False)
-            # JSONファイルに新しいデータを書き込む
-            with open(f'./playlist/editlist.json', 'w',encoding="utf-8") as file:
-                file.write(updated_json)
-            
-            await interaction.response.send_message(content=f'プレイリスト「{playlist_name}」の編集モードを終了します。',delete_after=5,silent=True)
+    playlist_name = f"{interaction.user.id}.json"
+    if not os.path.exists(f'./playlist/{playlist_name}'):
+        await interaction.response.send_message(content=f'プレイリストが編集モードになっていません。',delete_after=5,silent=True)
+        return
+    editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8"))
+    if not editlist[f"{interaction.user.id}"]["edit"] == True:
+        await interaction.response.send_message(content=f'プレイリストが編集モードになっていません。',delete_after=5,silent=True)
+        return
+    playlist_name = editlist[f"{interaction.user.id}"]["name"]
+    with open(f'./playlist/editlist.json', 'r',encoding="utf-8") as file:
+        data = json.load(file)
+    # 読み込んだJSONデータをPythonの辞書に変換
+    # これは前提としてJSONデータがオブジェクト（辞書）として始まっていることを前提としています
+    # もしJSONデータが配列（リスト）から始まっている場合は、dataの要素に追加します
+    # 例：data.append(new_data)
+    data_as_dict = dict(data)
+    # 新しい要素を辞書に追加
+    #edit : 編集中であるかどうか
+    #name : 何のプレイリストを編集しているのか
+    new_data = {
+        f"{interaction.user.id}":{
+            "edit":False,
+        }
+    }
+    data_as_dict.update(new_data)
+    # 更新された辞書をJSON形式に変換
+    updated_json = json.dumps(data_as_dict, indent=4,ensure_ascii = False)
+    # JSONファイルに新しいデータを書き込む
+    with open(f'./playlist/editlist.json', 'w',encoding="utf-8") as file:
+        file.write(updated_json)
+    
+    await interaction.response.send_message(content=f'プレイリスト「{playlist_name}」の編集モードを終了します。',delete_after=5,silent=True)
 
 @tree.command(name="remove",description="編集中のプレイリストから指定の曲を削除します")
 async def remove_command(interaction: discord.Interaction ,曲名:str):
-            # JSONファイルを読み込む
-
-            if not os.path.exists(f'./playlist/{interaction.user.id}.json'):
-                await interaction.response.send_message(content=f'プレイリストが編集モードになっていません。',delete_after=5,silent=True)
-                return
-            editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8"))
-            if not editlist[f"{interaction.user.id}"]["edit"] == True:
-                await interaction.response.send_message(content=f'プレイリストが編集モードになっていません。',delete_after=5,silent=True)
-                return
-            
-            
-            json_load = json.load(open(f'./playlist/{interaction.user.id}.json', 'r',encoding="utf-8"))
-            try:
-                playlist_name = editlist[f"{interaction.user.id}"]["name"]
-                if f"{曲名}" in json_load[f"{playlist_name}"]:
-                    json_load[f"{playlist_name}"].remove(f"{曲名}")
-                    # 更新されたデータをJSON形式に変換
-                    updated_json = json.dumps(json_load, indent=4, ensure_ascii=False)
-                    # JSONファイルに更新データを書き込む
-                    with open(f'./playlist/{interaction.user.id}.json', 'w',encoding="utf-8") as file:
-                        file.write(updated_json)
-                    await interaction.response.send_message(content=f'プレイリスト「{playlist_name}」から「{曲名}」を削除しました。',delete_after=5,silent=True)
-                else:
-                    await interaction.response.send_message(content=f'プレイリスト「{playlist_name}」には、「{曲名}」という曲は入っていません。',delete_after=5,silent=True)
-            except Exception as e:
-                await interaction.response.send_message(content=f'特殊なエラーが発生しました。プレイリストから曲を削除できませんでした')
-                print(e,flush=True)
-            
-            
+    if not os.path.exists(f'./playlist/{interaction.user.id}.json'):
+        await interaction.response.send_message(content=f'プレイリストが編集モードになっていません。',delete_after=5,silent=True)
+        return
+    editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8"))
+    if not editlist[f"{interaction.user.id}"]["edit"] == True:
+        await interaction.response.send_message(content=f'プレイリストが編集モードになっていません。',delete_after=5,silent=True)
+        return
+    
+    json_load = json.load(open(f'./playlist/{interaction.user.id}.json', 'r',encoding="utf-8"))
+    try:
+        playlist_name = editlist[f"{interaction.user.id}"]["name"]
+        if f"{曲名}" in json_load[f"{playlist_name}"]:
+            json_load[f"{playlist_name}"].remove(f"{曲名}")
+            # 更新されたデータをJSON形式に変換
+            updated_json = json.dumps(json_load, indent=4, ensure_ascii=False)
+            # JSONファイルに更新データを書き込む
+            with open(f'./playlist/{interaction.user.id}.json', 'w',encoding="utf-8") as file:
+                file.write(updated_json)
+            await interaction.response.send_message(content=f'プレイリスト「{playlist_name}」から「{曲名}」を削除しました。',delete_after=5,silent=True)
+        else:
+            await interaction.response.send_message(content=f'プレイリスト「{playlist_name}」には、「{曲名}」という曲は入っていません。',delete_after=5,silent=True)
+    except Exception as e:
+        await interaction.response.send_message(content=f'特殊なエラーが発生しました。プレイリストから曲を削除できませんでした')
+        print(e,flush=True)
+    
+    
 
 @tree.command(name="play",description="プレイリストを再生します。シャッフル再生する場合はオプションをTrueに設定してください。")
 async def play_command(interaction: discord.Interaction, プレイリスト名:str,シャッフル:bool):
-            # JSONファイルを読み込む
-            global play_queue
-            playlist_name = f"{interaction.user.id}.json"
-            if not os.path.exists(f'./playlist/{playlist_name}'):
-                await interaction.response.send_message(content=f'プレイリストがありません。',delete_after=5,silent=True)
-                return
-            editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8"))
-            if editlist[f"{interaction.user.id}"]["edit"] == True:
-                await interaction.response.send_message(content=f'プレイリストの編集を終了させてから再生を開始してください。',delete_after=5,silent=True)
-                return
-            json_load = json.load(open(f'./playlist/{playlist_name}', 'r',encoding="utf-8"))
-            if f"{プレイリスト名}" in json_load:
-                if interaction.user.voice is None:
-                    await interaction.response.send_message("先にVCに参加してください",delete_after=5,silent=True)
-                    return
-                elif interaction.guild.voice_client is None:
-                    await interaction.user.voice.channel.connect(self_deaf=True) # ボイスチャンネルに接続する
-                elif interaction.guild.voice_client:
-                    pass
-                else:
-                    await interaction.response.send_message("VCに参加できません",delete_after=5,silent=True)
-                    return
+    # JSONファイルを読み込む
+    global play_queue
+    playlist_name = f"{interaction.user.id}.json"
+    if not os.path.exists(f'./playlist/{playlist_name}'):
+        await interaction.response.send_message(content=f'プレイリストがありません。',delete_after=5,silent=True)
+        return
+    editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8"))
+    if editlist[f"{interaction.user.id}"]["edit"] == True:
+        await interaction.response.send_message(content=f'プレイリストの編集を終了させてから再生を開始してください。',delete_after=5,silent=True)
+        return
+    json_load = json.load(open(f'./playlist/{playlist_name}', 'r',encoding="utf-8"))
+    if f"{プレイリスト名}" in json_load:
+        if interaction.user.voice is None:
+            await interaction.response.send_message("先にVCに参加してください",delete_after=5,silent=True)
+            return
+        elif interaction.guild.voice_client is None:
+            await interaction.user.voice.channel.connect(self_deaf=True) # ボイスチャンネルに接続する
+        elif interaction.guild.voice_client:
+            pass
+        else:
+            await interaction.response.send_message("VCに参加できません",delete_after=5,silent=True)
+            return
 
-                music_length = len(json_load[f"{プレイリスト名}"])
+        music_length = len(json_load[f"{プレイリスト名}"])
 
-                if シャッフル:
-                    ns = []
-                    while len(ns) < music_length:
-                        n = random.randint(0, (music_length - 1))
-                        if not n in ns:
-                            ns.append(n)
-                    await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」から、{music_length}曲の楽曲をシャッフルしてお届けします！',delete_after=5,silent=True)
-                    i=0
-                    for w in ns:
-                        request_name = json_load[f"{プレイリスト名}"][w]
-                        try:
-                            youtube_audio_name = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['title'])
-                            yt_url = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['url'])
-                        except:
-                            break
-                        filename = __get_audio_url__(url=yt_url)
-                        play_queue.put((filename,youtube_audio_name))
-                        
-                        if (not interaction.guild.voice_client.is_playing()) and i==0:
-                            await play_next(interaction.guild,client.change_presence)
-                        i+=1
-                    
-                else:
-                    await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」から、{music_length}曲の楽曲をお届けします！',delete_after=5,silent=True)
-                    i=0
-                    for w in json_load[f"{プレイリスト名}"]:
-                        try:
-                            youtube_audio_name = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['title'])
-                            yt_url = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['url'])
-                        except:
-                            break
-                        filename = __get_audio_url__(url=yt_url)
-                        play_queue.put((filename,youtube_audio_name))
-                        if (not interaction.guild.voice_client.is_playing()) and i==0:
-                            await play_next(interaction.guild,client.change_presence)
-                        i+=1
-                return
-            else:
-                await interaction.response.send_message(content=f'「{プレイリスト名}」というプレイリストは見つかりませんでした',delete_after=5,silent=True)
-                return
+        if シャッフル:
+            ns = []
+            while len(ns) < music_length:
+                n = random.randint(0, (music_length - 1))
+                if not n in ns:
+                    ns.append(n)
+            await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」から、{music_length}曲の楽曲をシャッフルしてお届けします！',delete_after=5,silent=True)
+            i=0
+            for w in ns:
+                request_name = json_load[f"{プレイリスト名}"][w]
+                try:
+                    youtube_audio_name = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['title'])
+                    yt_url = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['url'])
+                except:
+                    break
+                filename = __get_audio_url__(url=yt_url)
+                play_queue.put((filename,youtube_audio_name))
+                
+                if (not interaction.guild.voice_client.is_playing()) and i==0:
+                    await play_next(interaction.guild,client.change_presence)
+                i+=1
+            
+        else:
+            await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」から、{music_length}曲の楽曲をお届けします！',delete_after=5,silent=True)
+            i=0
+            for w in json_load[f"{プレイリスト名}"]:
+                try:
+                    youtube_audio_name = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['title'])
+                    yt_url = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{request_name}']['url'])
+                except:
+                    break
+                filename = __get_audio_url__(url=yt_url)
+                play_queue.put((filename,youtube_audio_name))
+                if (not interaction.guild.voice_client.is_playing()) and i==0:
+                    await play_next(interaction.guild,client.change_presence)
+                i+=1
+        return
+    else:
+        await interaction.response.send_message(content=f'「{プレイリスト名}」というプレイリストは見つかりませんでした',delete_after=5,silent=True)
+        return
 
 @tree.command(name="reference_playlist",description="プレイリストを参照します")
 async def reference_playlist_command(interaction: discord.Interaction, プレイリスト名:str):
-            # JSONファイルを読み込む
+    # JSONファイルを読み込む
 
-            playlist_name = f"{interaction.user.id}.json"
-            if not os.path.exists(f'./playlist/{playlist_name}'):
-                await interaction.response.send_message(content=f'プレイリストがありません。',delete_after=5,silent=True)
-                return
-            json_load = json.load(open(f'./playlist/{playlist_name}', 'r',encoding="utf-8"))
-            cache_json_load = json.load(open('./cache.json', 'r',encoding="utf-8"))
-            if f"{プレイリスト名}" in json_load:
-                music_length = len(json_load[f"{プレイリスト名}"])
-                queue_list = "" 
-                music_time = 0
-                for w in json_load[f"{プレイリスト名}"]:
-                    music_name = cache_json_load[f"{w}"]["title"]
-                    queue_list = f"{queue_list}- {music_name}\n" 
-                    filename = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{w}']['filename'])
-                    
-                    if os.path.exists(f"./music/{filename}.webm"):
-                        length = mutagen_length(f"./music/{filename}.webm")
-                        music_time = (music_time + ((int(length[0:2]) * 3600) + (int(length[3:5]) * 60) + (int(length[6:8]))) )
-                        # print(f"{(length[0:2])}:{(length[3:5])}:{(length[6:8])}",flush=True)
-                    else:
-                        length = mutagen_length(f"./music/{filename}.mkv")
-                        try:
-                            music_time = (music_time + ((int(length[0:2]) * 3600) + (int(length[3:5]) * 60) + (int(length[6:8]))) )
-                        except:
-                            music_time = music_time
-                    music_time_min = (music_time // 60)
-                    music_time_sec = (music_time % 60)
-
-
-                await interaction.response.send_message(content=f'## {プレイリスト名}\n{queue_list}\n全{music_length}曲・{str(music_time_min)}分{str(music_time_sec)}秒',silent=True,ephemeral=True)
-                return
+    playlist_name = f"{interaction.user.id}.json"
+    if not os.path.exists(f'./playlist/{playlist_name}'):
+        await interaction.response.send_message(content=f'プレイリストがありません。',delete_after=5,silent=True)
+        return
+    json_load = json.load(open(f'./playlist/{playlist_name}', 'r',encoding="utf-8"))
+    cache_json_load = json.load(open('./cache.json', 'r',encoding="utf-8"))
+    if f"{プレイリスト名}" in json_load:
+        music_length = len(json_load[f"{プレイリスト名}"])
+        queue_list = "" 
+        music_time = 0
+        for w in json_load[f"{プレイリスト名}"]:
+            music_name = cache_json_load[f"{w}"]["title"]
+            queue_list = f"{queue_list}- {music_name}\n" 
+            filename = str(json.load(open('./cache.json', 'r',encoding="utf-8"))[f'{w}']['filename'])
+            
+            if os.path.exists(f"./music/{filename}.webm"):
+                length = mutagen_length(f"./music/{filename}.webm")
+                music_time = (music_time + ((int(length[0:2]) * 3600) + (int(length[3:5]) * 60) + (int(length[6:8]))) )
+                # print(f"{(length[0:2])}:{(length[3:5])}:{(length[6:8])}",flush=True)
             else:
-                await interaction.response.send_message(content=f'「{プレイリスト名}」というプレイリストは見つかりませんでした',delete_after=5,silent=True)
-                return
+                length = mutagen_length(f"./music/{filename}.mkv")
+                try:
+                    music_time = (music_time + ((int(length[0:2]) * 3600) + (int(length[3:5]) * 60) + (int(length[6:8]))) )
+                except:
+                    music_time = music_time
+            music_time_min = (music_time // 60)
+            music_time_sec = (music_time % 60)
+
+
+        await interaction.response.send_message(content=f'## {プレイリスト名}\n{queue_list}\n全{music_length}曲・{str(music_time_min)}分{str(music_time_sec)}秒',silent=True,ephemeral=True)
+        return
+    else:
+        await interaction.response.send_message(content=f'「{プレイリスト名}」というプレイリストは見つかりませんでした',delete_after=5,silent=True)
+        return
 
 @tree.command(name="delete_playlist",description="プレイリストを削除します。")
 async def delete_playlist_command(interaction: discord.Interaction, プレイリスト名:str):
-            editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8"))
-            if editlist[f"{interaction.user.id}"]["edit"] == True:
-                await interaction.response.send_message(content=f'プレイリストの編集を終了させてからコマンドを実行してください。',delete_after=5,silent=True)
-                return
+    editlist = json.load(open(f'./playlist/editlist.json', 'r',encoding="utf-8"))
+    if editlist[f"{interaction.user.id}"]["edit"] == True:
+        await interaction.response.send_message(content=f'プレイリストの編集を終了させてからコマンドを実行してください。',delete_after=5,silent=True)
+        return
 
-            playlist_name = f"{interaction.user.id}.json"
-            if not os.path.exists(f'./playlist/{playlist_name}'):
-                await interaction.response.send_message(content=f'プレイリストがありません。',delete_after=5,silent=True)
-                return
-            json_load = json.load(open(f'./playlist/{playlist_name}', 'r',encoding="utf-8"))
-            if f"{プレイリスト名}" in json_load:
-                del json_load[f"{プレイリスト名}"]
-                # 更新されたデータをJSON形式に変換
-                updated_json = json.dumps(json_load, indent=4, ensure_ascii=False)
-                # JSONファイルに更新データを書き込む
-                with open(f'./playlist/{playlist_name}', 'w',encoding="utf-8") as file:
-                    file.write(updated_json)
-                await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」を削除しました。',delete_after=5,silent=True)
-                return
-            else:
-                await interaction.response.send_message(content=f'「{プレイリスト名}」というプレイリストは既に削除されているか、見つかりませんでした',delete_after=5,silent=True)
-                return
+    playlist_name = f"{interaction.user.id}.json"
+    if not os.path.exists(f'./playlist/{playlist_name}'):
+        await interaction.response.send_message(content=f'プレイリストがありません。',delete_after=5,silent=True)
+        return
+    json_load = json.load(open(f'./playlist/{playlist_name}', 'r',encoding="utf-8"))
+    if f"{プレイリスト名}" in json_load:
+        del json_load[f"{プレイリスト名}"]
+        # 更新されたデータをJSON形式に変換
+        updated_json = json.dumps(json_load, indent=4, ensure_ascii=False)
+        # JSONファイルに更新データを書き込む
+        with open(f'./playlist/{playlist_name}', 'w',encoding="utf-8") as file:
+            file.write(updated_json)
+        await interaction.response.send_message(content=f'プレイリスト「{プレイリスト名}」を削除しました。',delete_after=5,silent=True)
+        return
+    else:
+        await interaction.response.send_message(content=f'「{プレイリスト名}」というプレイリストは既に削除されているか、見つかりませんでした',delete_after=5,silent=True)
+        return
 
 @tree.command(name="list_playlist",description="作成したプレイリストをすべて表示します。")
 async def list_playlist_command(interaction: discord.Interaction):
@@ -554,20 +551,19 @@ async def clear_command(interaction: discord.Interaction):
 async def on_message_delete(message:discord.Message):
     if message.guild.voice_client is None:
         return
-    if f'<@{APPLICATION_ID}>' in message.content:
-        if message.guild.voice_client.is_playing():
-                global audio_name
-                message_content = message.content.replace(f'<@{APPLICATION_ID}> ','').replace(f'<@{APPLICATION_ID}>','')
-                json_load = json.load(open('./cache.json', 'r',encoding="utf-8"))
-                try:
-                    if audio_name == json_load[f'{message_content}']["title"]:
-                        message.guild.voice_client.stop()
-                        if message.author.name == "makao1521":
-                            await message.channel.send(f'<@{message.author.id}> \n# ばーかばーか\n(再生を停止しました)',silent=True)
-                        else:
-                            await message.channel.send(content='リクエストメッセージが削除されたため、再生を停止しました！',delete_after=5,silent=True)
-                except:
-                    pass
+    if f'<@{APPLICATION_ID}>' in message.content and message.guild.voice_client.is_playing():
+        global audio_name
+        message_content = message.content.replace(f'<@{APPLICATION_ID}> ','').replace(f'<@{APPLICATION_ID}>','')
+        json_load = json.load(open('./cache.json', 'r',encoding="utf-8"))
+        try:
+            if audio_name == json_load[f'{message_content}']["title"]:
+                message.guild.voice_client.stop()
+                if message.author.name == "makao1521":
+                    await message.channel.send(f'<@{message.author.id}> \n# ばーかばーか\n(再生を停止しました)',silent=True)
+                else:
+                    await message.channel.send(content='リクエストメッセージが削除されたため、再生を停止しました！',delete_after=5,silent=True)
+        except:
+            pass
 @client.event
 async def on_message(message:discord.Message):
     # メッセージの送信者がbotだった場合は無視する
@@ -748,6 +744,4 @@ async def on_message(message:discord.Message):
         except Exception as e:
             print(e)
 
-
-# クライアントインスタンスを開始
 client.run(TOKEN)
