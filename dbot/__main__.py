@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-import os,discord,asyncio,queue,requests,json,ffmpeg,random,io,aiohttp,uuid
+import os,discord,asyncio,queue,requests,json,ffmpeg,random
 from os.path import join, dirname
 from dotenv import load_dotenv
 from discord import app_commands
