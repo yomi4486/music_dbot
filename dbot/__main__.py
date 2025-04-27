@@ -196,10 +196,7 @@ async def test_command(interaction: discord.Interaction):
         return
     if interaction.guild.voice_client.is_playing():
         interaction.guild.voice_client.stop()
-        if interaction.user.name == "makao1521":
-            await interaction.response.send_message('# ばーかばーか\n(停止しました)',silent=True)
-        else:
-            await interaction.response.send_message(content='再生を停止しました！',delete_after=5,silent=True)
+        await interaction.response.send_message(content='再生を停止しました！',delete_after=5,silent=True)
     else:
         await interaction.response.send_message(content='まだ何も再生されていません！',delete_after=5,silent=True)
 
@@ -212,10 +209,7 @@ async def pause_command(interaction: discord.Interaction):
     try:
         if interaction.guild.voice_client.is_playing():
             interaction.guild.voice_client.pause()
-            if interaction.user.name == "makao1521":
-                await interaction.response.send_message('# ばーかばーか\n(一時停止しました)',silent=True)
-            else:
-                await interaction.response.send_message(content='再生を一時停止しました！',delete_after=5,silent=True)
+            await interaction.response.send_message(content='再生を一時停止しました！',delete_after=5,silent=True)
             await client.change_presence(activity = discord.CustomActivity(name=str(f'⏯️ 一時停止中：{audio_name}'), type=1))
         else:
             await interaction.response.send_message(content='既に停止されています！',delete_after=5,silent=True)
@@ -242,10 +236,7 @@ async def resume_command(interaction: discord.Interaction):
     try:
         if not interaction.guild.voice_client.is_playing():
             interaction.guild.voice_client.resume()
-            if interaction.user.name == "makao1521":
-                await interaction.response.send_message('# ばーかばーか\n(再開しました)',silent=True)
-            else:
-                await interaction.response.send_message(content='再開しました！',delete_after=5,silent=True)
+            await interaction.response.send_message(content='再開しました！',delete_after=5,silent=True)
             await client.change_presence(activity = discord.Activity(name=str(f"🎵 {audio_name}"), type=2))
         else:
             await interaction.response.send_message(content='既に再生されています！',delete_after=5,silent=True)
@@ -558,10 +549,7 @@ async def on_message_delete(message:discord.Message):
         try:
             if audio_name == json_load[f'{message_content}']["title"]:
                 message.guild.voice_client.stop()
-                if message.author.name == "makao1521":
-                    await message.channel.send(f'<@{message.author.id}> \n# ばーかばーか\n(再生を停止しました)',silent=True)
-                else:
-                    await message.channel.send(content='リクエストメッセージが削除されたため、再生を停止しました！',delete_after=5,silent=True)
+                await message.channel.send(content='リクエストメッセージが削除されたため、再生を停止しました！',delete_after=5,silent=True)
         except:
             pass
 @client.event
